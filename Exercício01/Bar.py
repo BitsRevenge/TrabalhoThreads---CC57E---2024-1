@@ -8,10 +8,10 @@ import argparse
 logging.basicConfig(level=logging.DEBUG, format='%(message)s')
 
 class Cliente(threading.Thread):
-    def __init__(self, nome, gerenciador):
+    def __init__(self, nome, bartender):
         super().__init__()
         self.nome = nome
-        self.gerenciador = gerenciador
+        self.bartender = bartender
         self.e_esperar = threading.Event()
         self.beber = True
 
@@ -20,7 +20,7 @@ class Cliente(threading.Thread):
 
     def faz_pedido(self):
         self.beber = True
-        self.gerenciador.pedir(self)
+        self.bartender.pedir(self)
 
     def espera_pedido(self):
         self.e_esperar.wait()
@@ -35,10 +35,10 @@ class Cliente(threading.Thread):
         tempo = random.randint(1, 3)
         time.sleep(tempo)
         logging.info(f"Cliente {self.nome} bebeu")
-        self.gerenciador.espera_beberem()
+        self.bartender.espera_beberem()
 
     def run(self):
-        while not self.gerenciador.fechou():
+        while not self.bartender.fechou():
             self.faz_pedido()
             if self.beber:
                 self.espera_pedido()
@@ -46,16 +46,16 @@ class Cliente(threading.Thread):
                 self.consome_pedido()
 
 class Garcom(threading.Thread):
-    def __init__(self, max_cli, nome, gerenciador):
+    def __init__(self, max_cli, nome, bartender):
         super().__init__()
         self.nome = nome
-        self.gerenciador = gerenciador
+        self.bartender = bartender
         self.max_cli = max_cli
         self.anotados = []
 
     def recebe_max_pedidos(self):
         while len(self.anotados) < self.max_cli:
-            cliente_atual = self.gerenciador.anotar_pedido(self)
+            cliente_atual = self.bartender.anotar_pedido(self)
             if cliente_atual is not None:
                 if cliente_atual.beber:
                     self.anotados.append(cliente_atual)
@@ -78,12 +78,12 @@ class Garcom(threading.Thread):
         self.anotados.clear()
 
     def run(self):
-        while not self.gerenciador.fechou():
+        while not self.bartender.fechou():
             self.recebe_max_pedidos()
             self.registra_pedidos()
             self.entrega_pedidos()
 
-class Gerenciador:
+class Bartender:
     def __init__(self, n_clientes, tot_rodada):
         self.buff_quer = collections.deque(maxlen=1)
         self.buff_n_quer = collections.deque(maxlen=1)
@@ -157,10 +157,9 @@ def main():
     logging.info("\n\nPrimeira Rodada")
 
     if args.n_clientes > 0:
-        gerenciador = Gerenciador(args.n_clientes, args.n_rodadas)
-
-        garcons = [Garcom(args.cap_garcons, i, gerenciador) for i in range(args.n_garcons)]
-        clientes = [Cliente(i, gerenciador) for i in range(args.n_clientes)]
+        bartender = Bartender(args.n_clientes, args.n_rodadas)
+        garcons = [Garcom(args.cap_garcons, i, bartender) for i in range(args.n_garcons)]
+        clientes = [Cliente(i, bartender) for i in range(args.n_clientes)]
 
         for garcom in garcons:
             garcom.start()
