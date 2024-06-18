@@ -144,10 +144,10 @@ class Bartender:
 
 def parse_argumentos():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--n_clientes', help='Numero de Clientes. [10]', type=int, default=4)
-    parser.add_argument('--n_garcons', help='Numero de garcons. [2]', type=int, default=2)
-    parser.add_argument('--cap_garcons', help='Capacidade dos garcons. [3]', type=int, default=2)
-    parser.add_argument('--n_rodadas', help='Numero de rodadas. [2]', type=int, default=1)
+    parser.add_argument('--n_clientes', type=int, default=5)
+    parser.add_argument('--n_garcons', type=int, default=2)
+    parser.add_argument('--cap_garcons', type=int, default=2)
+    parser.add_argument('--n_rodadas', type=int, default=2)
     return parser.parse_args()
 
 def main():
